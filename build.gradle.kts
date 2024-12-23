@@ -1,3 +1,7 @@
+import com.diffplug.gradle.spotless.SpotlessExtension
+import com.diffplug.gradle.spotless.SpotlessPlugin
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -7,12 +11,13 @@ plugins {
 }
 
 subprojects {
-    apply(plugin = "com.diffplug.spotless")
-    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+    apply<SpotlessPlugin>()
+    configure<SpotlessExtension> {
         kotlin {
             target("**/*.kt")
             targetExclude("${rootProject.layout.buildDirectory}/**/*.kt")
             ktlint()
+            endWithNewline()
             licenseHeaderFile(rootProject.file("spotless/copyright.kt"))
         }
 
@@ -22,6 +27,11 @@ subprojects {
         }
     }
 
+    afterEvaluate {
+        tasks.withType<KotlinCompile> {
+            finalizedBy("spotlessApply")
+        }
+    }
 }
 
 tasks.register("clean") {
